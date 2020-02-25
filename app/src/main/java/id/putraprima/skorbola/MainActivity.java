@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView home, away;
     private EditText homeText, awayText;
+    private Uri homeUri, awayUri;
+    private Bitmap homeBitmap, awayBitmap;
     private static final String KEY = "skor";
 
     @Override
@@ -52,22 +55,22 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (data != null) {
                 try {
-                    Uri imageUri = data.getData();
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                    home.setImageBitmap(bitmap);
+                    homeUri = data.getData();
+                    homeBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), homeUri);
+                    home.setImageBitmap(homeBitmap);
                 } catch(IOException e) {
-                    Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Can't Load Image", Toast.LENGTH_SHORT).show();
                     Log.e(TAG, e.getMessage());
                 }
             }
         } else if (requestCode == 2) {
             if (data != null) {
                 try {
-                    Uri imageUri = data.getData();
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                    away.setImageBitmap(bitmap);
+                    awayUri = data.getData();
+                    awayBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), awayUri);
+                    away.setImageBitmap(awayBitmap);
                 } catch(IOException e) {
-                    Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Can't Load Image", Toast.LENGTH_SHORT).show();
                     Log.e(TAG, e.getMessage());
                 }
             }
@@ -87,15 +90,21 @@ public class MainActivity extends AppCompatActivity {
         String HOME = homeText.getText().toString();
         String AWAY = awayText.getText().toString();
 
-        Skor skor = new Skor(HOME, AWAY);
+        Skor skor = new Skor(HOME, AWAY, homeUri, awayUri);
         Intent intent = new Intent(this, MatchActivity.class);
         if (!HOME.isEmpty() && !AWAY.isEmpty()) {
-            intent.putExtra(KEY, skor);
-            startActivity(intent);
+            if (homeBitmap != null && awayBitmap != null) {
+                intent.putExtra(KEY, skor);
+                startActivity(intent);
+            } else if (homeBitmap == null) {
+                Toast.makeText(this, "Please, Choose Image of Team Home!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Please, Choose Image of Team Away!", Toast.LENGTH_SHORT).show();
+            }
         } else if (HOME.isEmpty()){
-            Toast.makeText(this, "Pastikan Nama Tim HOME Terisi!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Team Home Name is Empty!", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Pastikan Nama Tim AWAY Terisi!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Team Away Name is Empty!", Toast.LENGTH_SHORT).show();
         }
     }
 }
